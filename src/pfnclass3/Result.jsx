@@ -194,7 +194,7 @@ const Result = () => {
 
               <div className="summaryGrid">
                 
-                <div className="summaryBlock">
+                  <div className="summaryBlock fullWidth">
                   <h4>Demographics</h4>
                   <div className="row">
                     <span>Age:</span>
@@ -218,7 +218,7 @@ const Result = () => {
                   </div>
                 </div>
 
-                <div className="summaryBlock">
+              {/*  <div className="summaryBlock">
                   <h4>Fracture Characteristics</h4>
                   <div className="row">
                     <span>AO/OTA:</span>
@@ -236,9 +236,9 @@ const Result = () => {
                     <span>Lateral Wall:</span>
                     <strong>{formData.lateralWall}mm</strong>
                   </div>
-                </div>
+                </div> */}
 
-                <div className="summaryBlock fullWidth">
+                {/*    <div className="summaryBlock fullWidth">
                   <h4>Surgical Parameters</h4>
 
                   <div className="twoCol">
@@ -264,8 +264,8 @@ const Result = () => {
                       <span>Nail Length:</span>
                       <strong>{formData.nailLength}mm</strong>
                     </div>
-                  </div>
-                </div>
+                  </div> 
+                </div> */}
               </div>
             </div>
 
