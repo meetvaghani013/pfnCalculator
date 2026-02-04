@@ -238,7 +238,7 @@ const Result = () => {
                   </div>
                 </div> */}
 
-                {/*    <div className="summaryBlock fullWidth">
+        {/*    <div className="summaryBlock fullWidth">
                   <h4>Surgical Parameters</h4>
 
                   <div className="twoCol">
