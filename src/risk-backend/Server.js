@@ -4,7 +4,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import multer from "multer";
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app = express();
 app.use(cors());
@@ -12,16 +12,21 @@ app.use(express.json());
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+
 if (!process.env.GEMINI_API_KEY) {
   console.error("❌ GEMINI_API_KEY missing");
   process.exit(1);
 }
 
-const genAI = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const model = genAI.getGenerativeModel({
+  model: "models/gemini-2.5-flash",
 });
 
-console.log("✅ Gemini ready");
+console.log(process.env.GEMINI_API_KEY ? "✅ Gemini ready" : "❌ Gemini not ready");
+
 
 app.post(
   "/calculate-risk",
@@ -29,14 +34,36 @@ app.post(
   async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ message: "Please upload an X-ray image" });
+        return res.status(400).json({
+          message: "Please upload an X-ray image",
+        });
       }
 
       if (!req.file.mimetype.startsWith("image/")) {
-        return res.status(400).json({ message: "Invalid file type" });
+        return res.status(400).json({
+          message: "Invalid file type",
+        });
       }
 
-      const { age, gender, bmi, side, modeOfInjuring } = req.body;
+      console.log("BODY:", req.body);
+      console.log("FILE:", req.file.originalname);
+
+      const {
+        age,
+        gender,
+        bmi,
+        side,
+        modeOfInjuring,
+        // aoota,
+        // stability,
+        // calcar,
+        // lateralWall,
+        // reduction,
+        // tad,
+        // neckShaftAngle,
+        // nailLength,
+        // legScrew,
+      } = req.body;
 
       if (!age || !gender || !bmi) {
         return res.status(400).json({
@@ -50,6 +77,20 @@ app.post(
           mimeType: req.file.mimetype,
         },
       };
+
+
+
+
+      // AO / OTA: ${ aoota }
+      // Stability: ${ stability }
+      // Calcar: ${ calcar }
+      // Lateral Wall: ${ lateralWall }
+      // Reduction: ${ reduction }
+      // TAD: ${ tad }
+      // Neck Shaft Angle: ${ neckShaftAngle }
+      // Nail Length: ${ nailLength }
+      // Screw Position: ${ legScrew }
+
 
       const prompt = `
 You are an orthopedic AI.
@@ -71,33 +112,16 @@ Patient details:
 Age: ${age}
 Gender: ${gender}
 BMI: ${bmi}
-Side: ${side || "unknown"}
-Mode Of Injuring: ${modeOfInjuring || "unknown"}
+Side: ${side}
+Mode Of Injuring: ${modeOfInjuring}
 `;
 
-      const result = await genAI.models.generateContent({
-        model: "models/gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: prompt },
-              imagePart,
-            ],
-          },
-        ],
-      });
+      const result = await model.generateContent([
+        prompt,
+        imagePart,
+      ]);
 
-      const text =
-        result.candidates?.[0]?.content?.parts
-          ?.map(p => p.text || "")
-          .join("")
-          .trim();
-
-      if (!text) {
-        throw new Error("Empty Gemini response");
-      }
-
+      const text = result.response.text();
       const cleaned = text.replace(/```json|```/g, "").trim();
 
       let parsed;
@@ -106,7 +130,6 @@ Mode Of Injuring: ${modeOfInjuring || "unknown"}
       } catch {
         return res.status(500).json({
           message: "Invalid Gemini JSON",
-          raw: text,
         });
       }
 
@@ -140,7 +163,7 @@ Mode Of Injuring: ${modeOfInjuring || "unknown"}
       console.log("✅ RISK:", risk, riskLevel);
 
     } catch (err) {
-      console.error("❌ GEMINI ERROR:", err);
+      console.error("GEMINI ERROR:", err.message);
       res.status(500).json({
         message: "Server busy. Please try again later",
       });
@@ -151,3 +174,7 @@ Mode Of Injuring: ${modeOfInjuring || "unknown"}
 app.listen(5000, () => {
   console.log("🚀 Server running http://localhost:5000");
 });
+
+
+
+
